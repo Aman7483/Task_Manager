@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Manager</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f0f0;
+    min-height: 100vh;
+  }
+  #task-form {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+  }
+  #task-name {
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    flex-grow: 1;
+  }
+  #create-task {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .board {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    margin-top: 20px;
+  }
+  .column {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin: 10px;
+    background-color: #f7f7f7;
+    border-radius: 5px;
+  }
+  .task {
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 300px;
+  }
+</style>
+</head>
+<body>
+<div id="task-form">
+  <input type="text" id="task-name" placeholder="Enter task name">
+  <button id="create-task">Create Task</button>
+</div>
+<div class="board">
+  <div class="column" id="open-column">
+    <h2>Open</h2>
+  </div>
+  <div class="column" id="in-progress-column">
+    <h2>In Progress</h2>
+  </div>
+  <div class="column" id="in-review-column">
+    <h2>In Review</h2>
+  </div>
+  <div class="column" id="done-column">
+    <h2>Done</h2>
+  </div>
+</div>
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <textarea id="task-description" rows="4" cols="25" placeholder="Enter task description"></textarea>
+    <button id="save-description">Save</button>
+  </div>
+</div>
+<script>
+  const openColumn = document.getElementById('open-column');
+  const inProgressColumn = document.getElementById('in-progress-column');
+  const inReviewColumn = document.getElementById('in-review-column');
+  const doneColumn = document.getElementById('done-column');
+  const modal = document.getElementById('modal');
+  const taskDescription = document.getElementById('task-description');
+  const saveDescriptionBtn = document.getElementById('save-description');
+  const createTaskBtn = document.getElementById('create-task');
+  const taskNameInput = document.getElementById('task-name');
+  let selectedTask = null;
+
+  let taskIdCounter = 0; // Counter for generating unique task IDs
+
+  function createTaskElement(name) {
+    const taskId = `task-${taskIdCounter++}`;
+    const taskElement = document.createElement('div');
+    taskElement.id = taskId; // Assign a unique ID to the task
+    taskElement.className = 'task';
+    taskElement.textContent = name;
+    taskElement.dataset.description = '';
+    taskElement.draggable = true;
+    taskElement.addEventListener('click', () => {
+      selectedTask = taskElement;
+      modal.style.display = 'flex';
+    });
+    taskElement.addEventListener('dragstart', (event) => {
+      event.dataTransfer.setData('text/plain', taskElement.id);
+    });
+    return taskElement;
+  }
+
+  function moveTask(taskId, targetColumn) {
+    const taskElement = document.getElementById(taskId);
+    targetColumn.appendChild(taskElement);
+  }
+
+  saveDescriptionBtn.addEventListener('click', () => {
+    if (selectedTask) {
+      const description = taskDescription.value;
+      selectedTask.dataset.description = description;
+      modal.style.display = 'none';
+    }
+  });
+
+  createTaskBtn.addEventListener('click', () => {
+    const taskName = taskNameInput.value;
+    if (taskName) {
+      const taskElement = createTaskElement(taskName);
+      openColumn.appendChild(taskElement);
+      taskNameInput.value = '';
+    }
+  });
+
+  openColumn.addEventListener('dragover', (event) => {
+    event.preventDefault();
+  });
+
+  inProgressColumn.addEventListener('dragover', (event) => {
+    event.preventDefault();
+  });
+
+  inReviewColumn.addEventListener('dragover', (event) => {
+    event.preventDefault();
+  });
+
+  doneColumn.addEventListener('dragover', (event) => {
+    event.preventDefault();
+  });
+
+  openColumn.addEventListener('drop', (event) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData('text/plain');
+    moveTask(taskId, openColumn);
+  });
+
+  inProgressColumn.addEventListener('drop', (event) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData('text/plain');
+    moveTask(taskId, inProgressColumn);
+  });
+
+  inReviewColumn.addEventListener('drop', (event) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData('text/plain');
+    moveTask(taskId, inReviewColumn);
+  });
+
+  doneColumn.addEventListener('drop', (event) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData('text/plain');
+    moveTask(taskId, doneColumn);
+  });
+</script>
+</body>
+</html>
